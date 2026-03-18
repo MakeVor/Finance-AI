@@ -1017,19 +1017,18 @@ ${buildContext()}
 Давай конкретные советы на основе реальных данных. Если данных мало — скажи что нужно добавить транзакции. Не используй markdown, отвечай обычным текстом.`;
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const GEMINI_KEY = 'AIzaSyAdDx3fU1l9CTB4AB9f-J_cxhoNaDyE_OM';
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: text }]
+        contents: [{ parts: [{ text: systemPrompt + '\n\nВопрос пользователя: ' + text }] }],
+        generationConfig: { maxOutputTokens: 1000 }
       })
     });
     const data = await res.json();
     removeTyping();
-    const reply = data.content?.[0]?.text || 'Нет ответа.';
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Нет ответа.';
     addAIMessage(escHtml(reply).replace(/\n/g, '<br>'));
   } catch {
     removeTyping();
