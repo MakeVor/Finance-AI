@@ -1028,7 +1028,12 @@ ${buildContext()}
     });
     const data = await res.json();
     removeTyping();
-    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Нет ответа.';
+    if (data.error) {
+      addAIMessage('Ошибка API: ' + escHtml(data.error.message || JSON.stringify(data.error)));
+      document.getElementById('sendBtn').disabled = false;
+      return;
+    }
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Нет ответа: ' + JSON.stringify(data).slice(0, 200);
     addAIMessage(escHtml(reply).replace(/\n/g, '<br>'));
   } catch {
     removeTyping();
