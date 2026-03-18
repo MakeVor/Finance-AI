@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <meta name="theme-color" content="#4ade80">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -56,9 +56,13 @@ body::before {
 .app {
   display: flex;
   flex-direction: column;
-  height: 100dvh;
+  height: 100dvh; height: -webkit-fill-available;
   padding-top: var(--safe-top);
   padding-bottom: var(--safe-bottom);
+}
+
+@supports (height: 100dvh) {
+  .app { height: 100dvh; height: -webkit-fill-available; }
 }
 
 /* ── HEADER ── */
@@ -442,25 +446,44 @@ body::before {
 }
 
 /* ── FAB ── */
-.fab {
-  position: fixed;
-  bottom: calc(20px + var(--safe-bottom));
-  right: 20px;
-  width: 52px; height: 52px;
+.fab { display: none; }
+.add-btn {
+  width: 28px; height: 28px;
   background: var(--accent);
   border: none;
   border-radius: 50%;
   color: var(--bg);
-  font-size: 24px;
+  font-size: 18px;
+  font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 20px #4ade8044;
-  z-index: 50;
+  flex-shrink: 0;
+  line-height: 1;
   transition: all 0.15s;
 }
-.fab:active { transform: scale(0.94); }
+.add-btn:active { transform: scale(0.93); }
+
+/* ── KEYBOARD FIX ── */
+html {
+  height: -webkit-fill-available;
+}
+.app {
+  min-height: -webkit-fill-available;
+}
+.input-area {
+  position: sticky;
+  bottom: 0;
+  background: var(--bg);
+  z-index: 10;
+}
+.quick-actions {
+  position: sticky;
+  bottom: 0;
+  background: var(--bg);
+  z-index: 9;
+}
 
 /* ── MODAL ── */
 .modal-overlay {
@@ -586,6 +609,7 @@ body::before {
     <div class="header-right">
       <div class="dot"></div>
       <div class="balance-pill" id="headerBalance" onclick="switchTab('stats')">0 ₽</div>
+      <button class="add-btn" onclick="openModal()">+</button>
     </div>
   </header>
 
@@ -1031,6 +1055,18 @@ function autoResize(el) {
 }
 
 function save() { localStorage.setItem('fin_tx', JSON.stringify(transactions)); }
+
+// Scroll to bottom when keyboard opens
+const inputBox = document.getElementById('userInput');
+if (inputBox) {
+  inputBox.addEventListener('focus', () => {
+    setTimeout(() => {
+      inputBox.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      const msgs = document.getElementById('messages');
+      if (msgs) msgs.scrollTop = msgs.scrollHeight;
+    }, 300);
+  });
+}
 
 function clearData() {
   if (!confirm('Удалить все транзакции?')) return;
